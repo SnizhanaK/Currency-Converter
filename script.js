@@ -173,12 +173,12 @@ function handleFormSubmit(event) {
 
     const formattedConverted = new Intl.NumberFormat(undefined, {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 4,
     }).format(convertedAmount);
 
     const formattedGel = new Intl.NumberFormat(undefined, {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 4,
     }).format(gelEquivalent);
 
     setResult(

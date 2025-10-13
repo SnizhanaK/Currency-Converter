@@ -1,1 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBG Currency Converter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>NBG Currency Converter</h1>
+    <p class="subtitle">Calculate historic exchange rates using the National Bank of Georgia API.</p>
+  </header>
 
+  <main>
+    <section class="converter-card" aria-labelledby="converter-title">
+      <h2 id="converter-title">Conversion details</h2>
+      <form id="converter-form">
+        <div class="form-group">
+          <label for="amount">Amount</label>
+          <input type="number" id="amount" name="amount" min="0" step="0.01" required placeholder="Enter amount" />
+        </div>
+
+        <div class="form-group">
+          <label for="date">Conversion date</label>
+          <input type="date" id="date" name="date" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="from-currency">From currency</label>
+            <select id="from-currency" name="fromCurrency" required></select>
+          </div>
+          <div class="form-group">
+            <label for="to-currency">To currency</label>
+            <select id="to-currency" name="toCurrency" required></select>
+          </div>
+        </div>
+
+        <button type="submit" class="convert-button">Convert</button>
+      </form>
+      <p class="helper-text">Default currencies fall back to USD → GEL if no previous choice is saved.</p>
+    </section>
+
+    <section class="result-card" aria-live="polite">
+      <h2>Result</h2>
+      <div id="result" class="result"></div>
+    </section>
+
+    <section class="status-card" aria-live="polite">
+      <h2>Status</h2>
+      <div id="status" class="status">Fetching currency list…</div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Data sourced from the <a href="https://nbg.gov.ge/" target="_blank" rel="noopener noreferrer">National Bank of Georgia</a>.</p>
+  </footer>
+
+  <script src="script.js" type="module"></script>
+</body>
+</html>

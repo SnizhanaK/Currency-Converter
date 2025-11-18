@@ -14,6 +14,7 @@ createApp({
 
       currencies: [],
       rateCache: {},
+      isDark: false,
 
       rows: [{ amount: "", date: "", result: null }],
       summary: [],
@@ -25,11 +26,22 @@ createApp({
     const today = new Date().toISOString().split("T")[0];
     this.rows[0].date = today;
     this.loadCurrenciesForToday(today);
+
+    const saved = localStorage.getItem("theme");
+    this.isDark = saved === "dark";
+
+    document.documentElement.classList.toggle("dark", this.isDark);
   },
 
   methods: {
     format(num) {
       return Number(num).toFixed(2);
+    },
+
+    toggleTheme() {
+      this.isDark = !this.isDark;
+      localStorage.setItem("theme", this.isDark ? "dark" : "light");
+      document.documentElement.classList.toggle("dark", this.isDark);
     },
 
     async loadCurrenciesForToday(date) {
@@ -43,13 +55,11 @@ createApp({
     async fetchRates(date) {
       if (this.rateCache[date]) return this.rateCache[date];
 
-      const response = await fetch(`${API_ENDPOINT}${date}`);
-      const data = await response.json();
+      const res = await fetch(`${API_ENDPOINT}${date}`);
+      const data = await res.json();
 
-      const entry = data[0];
       const map = new Map();
-
-      entry.currencies.forEach((c) => {
+      data[0].currencies.forEach((c) => {
         map.set(c.code, {
           name: c.name,
           rate: Number(c.rate),
@@ -65,9 +75,8 @@ createApp({
       if (!amount || isNaN(amount)) return null;
       if (currencyCode === "GEL") return Number(amount);
 
-      const details = ratesMap.get(currencyCode);
-      const unit = details.rate / details.qty;
-      return Number(amount) * unit;
+      const d = ratesMap.get(currencyCode);
+      return Number(amount) * (d.rate / d.qty);
     },
 
     addRow() {
@@ -80,51 +89,30 @@ createApp({
     },
 
     async calculateAll() {
-      const batchSummary = [];
+      const batch = [];
       let batchTotal = 0;
 
       for (const row of this.rows) {
-        if (!row.amount || !row.date) {
-          row.result = null;
-          continue;
-        }
+        if (!row.amount || !row.date) continue;
 
         const amount = Number(row.amount);
-        if (!amount || amount <= 0) {
-          row.result = null;
-          continue;
-        }
+        if (!amount || amount <= 0) continue;
 
-        try {
-          const rates = await this.fetchRates(row.date);
-          const resultGel = this.convertToGel(amount, this.fromCurrency, rates);
+        const rates = await this.fetchRates(row.date);
+        const result = this.convertToGel(amount, this.fromCurrency, rates);
 
-          if (resultGel == null || !isFinite(resultGel)) {
-            row.result = null;
-            continue;
-          }
+        if (result == null) continue;
 
-          row.result = resultGel;
+        row.result = result;
 
-          batchSummary.push({
-            amount,
-            date: row.date,
-            result: resultGel,
-          });
-
-          batchTotal += resultGel;
-        } catch (e) {
-          console.error(e);
-          row.result = null;
-        }
+        batch.push({ amount, date: row.date, result });
+        batchTotal += result;
       }
 
-      if (batchSummary.length === 0) return;
+      if (batch.length === 0) return;
 
-      this.summary.push(...batchSummary);
-
-      const prevTotal = this.totalSum ?? 0;
-      this.totalSum = prevTotal + batchTotal;
+      this.summary.push(...batch);
+      this.totalSum = (this.totalSum ?? 0) + batchTotal;
 
       const today = new Date().toISOString().split("T")[0];
       this.rows = [{ amount: "", date: today, result: null }];
@@ -140,7 +128,7 @@ createApp({
       this.totalSum =
           this.summary.length === 0
               ? null
-              : this.summary.reduce((acc, item) => acc + item.result, 0);
+              : this.summary.reduce((a, x) => a + x.result, 0);
     },
   },
 }).mount("#app");

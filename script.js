@@ -1,224 +1,146 @@
-const API_ENDPOINT = "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json/?date=";
-const LOCAL_STORAGE_KEYS = {
-  fromCurrency: "nbgConverter.fromCurrency",
-  toCurrency: "nbgConverter.toCurrency",
-};
+const API_ENDPOINT =
+    "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json/?date=";
 
 const DEFAULT_FROM = "USD";
-const DEFAULT_TO = "GEL"; // National currency, not returned by API but used for conversion baseline.
+const DEFAULT_TO = "GEL";
 
-const amountInput = document.getElementById("amount");
-const dateInput = document.getElementById("date");
-const fromSelect = document.getElementById("from-currency");
-const toSelect = document.getElementById("to-currency");
-const statusBox = document.getElementById("status");
-const resultBox = document.getElementById("result");
+const { createApp } = Vue;
 
-let currencyMap = new Map();
+createApp({
+  data() {
+    return {
+      fromCurrency: DEFAULT_FROM,
+      toCurrency: DEFAULT_TO,
 
-function formatDateForAPI(date) {
-  return date.toISOString().split("T")[0];
-}
+      currencies: [],
+      rateCache: {},
 
-function setStatus(message, isError = false) {
-  statusBox.textContent = message;
-  statusBox.classList.toggle("error", isError);
-}
+      rows: [{ amount: "", date: "", result: null }],
+      summary: [],
+      totalSum: null,
+    };
+  },
 
-function setResult(message) {
-  resultBox.innerHTML = message;
-}
+  mounted() {
+    const today = new Date().toISOString().split("T")[0];
+    this.rows[0].date = today;
+    this.loadCurrenciesForToday(today);
+  },
 
-function getSavedCurrency(key, fallback) {
-  return localStorage.getItem(key) || fallback;
-}
+  methods: {
+    format(num) {
+      return Number(num).toFixed(2);
+    },
 
-function saveCurrencySelections(fromCurrency, toCurrency) {
-  localStorage.setItem(LOCAL_STORAGE_KEYS.fromCurrency, fromCurrency);
-  localStorage.setItem(LOCAL_STORAGE_KEYS.toCurrency, toCurrency);
-}
-
-function populateCurrencyOptions() {
-  const savedFrom = getSavedCurrency(LOCAL_STORAGE_KEYS.fromCurrency, DEFAULT_FROM);
-  const savedTo = getSavedCurrency(LOCAL_STORAGE_KEYS.toCurrency, DEFAULT_TO);
-
-  const fragment = document.createDocumentFragment();
-
-  currencyMap.forEach((details, code) => {
-    const option = document.createElement("option");
-    option.value = code;
-    option.textContent = `${code} — ${details.name}`;
-    fragment.appendChild(option);
-  });
-
-  fromSelect.innerHTML = "";
-  toSelect.innerHTML = "";
-
-  fromSelect.appendChild(fragment.cloneNode(true));
-  toSelect.appendChild(fragment);
-
-  // Add GEL manually for target currency selection
-  if (!toSelect.querySelector("option[value='GEL']")) {
-    const gelOption = document.createElement("option");
-    gelOption.value = "GEL";
-    gelOption.textContent = "GEL — Georgian Lari";
-    toSelect.appendChild(gelOption);
-  }
-
-  if (!fromSelect.querySelector("option[value='GEL']")) {
-    const gelOption = document.createElement("option");
-    gelOption.value = "GEL";
-    gelOption.textContent = "GEL — Georgian Lari";
-    fromSelect.appendChild(gelOption);
-  }
-
-  fromSelect.value = currencyMap.has(savedFrom) || savedFrom === "GEL" ? savedFrom : DEFAULT_FROM;
-  toSelect.value = currencyMap.has(savedTo) || savedTo === "GEL" ? savedTo : DEFAULT_TO;
-}
-
-function convertAmount(amount, fromCurrency, toCurrency) {
-  if (fromCurrency === toCurrency) {
-    return amount;
-  }
-
-  const gelValue = convertToGel(amount, fromCurrency);
-  return convertFromGel(gelValue, toCurrency);
-}
-
-function convertToGel(amount, currencyCode) {
-  if (currencyCode === "GEL") {
-    return amount;
-  }
-
-  const details = currencyMap.get(currencyCode);
-  if (!details) {
-    throw new Error(`Currency ${currencyCode} is not available for the selected date.`);
-  }
-
-  const ratePerUnit = details.rate / details.quantity;
-  return amount * ratePerUnit;
-}
-
-function convertFromGel(amountGel, currencyCode) {
-  if (currencyCode === "GEL") {
-    return amountGel;
-  }
-
-  const details = currencyMap.get(currencyCode);
-  if (!details) {
-    throw new Error(`Currency ${currencyCode} is not available for the selected date.`);
-  }
-
-  const ratePerUnit = details.rate / details.quantity;
-  return amountGel / ratePerUnit;
-}
-
-async function fetchCurrencies(date) {
-  setStatus("Loading rates…");
-  try {
-    const response = await fetch(`${API_ENDPOINT}${date}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch rates: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (!Array.isArray(data) || data.length === 0) {
-      throw new Error("Unexpected response format from API.");
-    }
-
-    const [entry] = data;
-    if (!entry || !Array.isArray(entry.currencies)) {
-      throw new Error("No currency data available for the selected date.");
-    }
-
-    currencyMap = new Map();
-    entry.currencies.forEach((currency) => {
-      currencyMap.set(currency.code, {
-        name: currency.name,
-        rate: Number(currency.rate),
-        quantity: Number(currency.quantity),
+    async loadCurrenciesForToday(date) {
+      const rates = await this.fetchRates(date);
+      this.currencies = Array.from(rates.keys()).map((code) => {
+        const details = rates.get(code);
+        return { code, name: details.name };
       });
-    });
+    },
 
-    populateCurrencyOptions();
-    setStatus(`Loaded ${currencyMap.size} currencies for ${entry.date.slice(0, 10)}.`);
-  } catch (error) {
-    console.error(error);
-    setStatus(error.message || "Unable to load currency list.", true);
-  }
-}
+    async fetchRates(date) {
+      if (this.rateCache[date]) return this.rateCache[date];
 
-function handleFormSubmit(event) {
-  event.preventDefault();
+      const response = await fetch(`${API_ENDPOINT}${date}`);
+      const data = await response.json();
 
-  const amount = Number(amountInput.value);
-  const date = dateInput.value;
-  const fromCurrency = fromSelect.value;
-  const toCurrency = toSelect.value;
+      const entry = data[0];
+      const map = new Map();
 
-  if (Number.isNaN(amount) || amount <= 0) {
-    setResult("<span>Please enter a valid amount greater than zero.</span>");
-    return;
-  }
+      entry.currencies.forEach((c) => {
+        map.set(c.code, {
+          name: c.name,
+          rate: Number(c.rate),
+          qty: Number(c.quantity),
+        });
+      });
 
-  if (!date) {
-    setResult("<span>Please choose a date.</span>");
-    return;
-  }
+      this.rateCache[date] = map;
+      return map;
+    },
 
-  try {
-    const convertedAmount = convertAmount(amount, fromCurrency, toCurrency);
-    const gelEquivalent = convertToGel(amount, fromCurrency);
-    saveCurrencySelections(fromCurrency, toCurrency);
+    convertToGel(amount, currencyCode, ratesMap) {
+      if (!amount || isNaN(amount)) return null;
+      if (currencyCode === "GEL") return Number(amount);
 
-    const formattedConverted = new Intl.NumberFormat(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 4,
-    }).format(convertedAmount);
+      const details = ratesMap.get(currencyCode);
+      const unit = details.rate / details.qty;
+      return Number(amount) * unit;
+    },
 
-    const formattedGel = new Intl.NumberFormat(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 4,
-    }).format(gelEquivalent);
+    addRow() {
+      const today = new Date().toISOString().split("T")[0];
+      this.rows.push({ amount: "", date: today, result: null });
+    },
 
-    setResult(
-      `<strong>${formattedConverted} ${toCurrency}</strong>` +
-        `<span>${amount} ${fromCurrency} was worth ${formattedGel} GEL on ${date}.</span>`
-    );
-  } catch (error) {
-    console.error(error);
-    setResult(`<span>${error.message}</span>`);
-  }
-}
+    removeRow(index) {
+      if (this.rows.length > 1) this.rows.splice(index, 1);
+    },
 
-function initializeDateField() {
-  const today = new Date();
-  const formattedToday = formatDateForAPI(today);
-  dateInput.value = formattedToday;
-}
+    async calculateAll() {
+      const batchSummary = [];
+      let batchTotal = 0;
 
-async function init() {
-  initializeDateField();
-  const initialDate = dateInput.value;
-  await fetchCurrencies(initialDate);
-}
+      for (const row of this.rows) {
+        if (!row.amount || !row.date) {
+          row.result = null;
+          continue;
+        }
 
-dateInput.addEventListener("change", (event) => {
-  const selectedDate = event.target.value;
-  if (selectedDate) {
-    fetchCurrencies(selectedDate);
-  }
-});
+        const amount = Number(row.amount);
+        if (!amount || amount <= 0) {
+          row.result = null;
+          continue;
+        }
 
-fromSelect.addEventListener("change", () => {
-  saveCurrencySelections(fromSelect.value, toSelect.value);
-});
+        try {
+          const rates = await this.fetchRates(row.date);
+          const resultGel = this.convertToGel(amount, this.fromCurrency, rates);
 
-toSelect.addEventListener("change", () => {
-  saveCurrencySelections(fromSelect.value, toSelect.value);
-});
+          if (resultGel == null || !isFinite(resultGel)) {
+            row.result = null;
+            continue;
+          }
 
-const form = document.getElementById("converter-form");
-form.addEventListener("submit", handleFormSubmit);
+          row.result = resultGel;
 
-init();
+          batchSummary.push({
+            amount,
+            date: row.date,
+            result: resultGel,
+          });
+
+          batchTotal += resultGel;
+        } catch (e) {
+          console.error(e);
+          row.result = null;
+        }
+      }
+
+      if (batchSummary.length === 0) return;
+
+      this.summary.push(...batchSummary);
+
+      const prevTotal = this.totalSum ?? 0;
+      this.totalSum = prevTotal + batchTotal;
+
+      const today = new Date().toISOString().split("T")[0];
+      this.rows = [{ amount: "", date: today, result: null }];
+    },
+
+    clearSummary() {
+      this.summary = [];
+      this.totalSum = null;
+    },
+
+    removeSummaryItem(index) {
+      this.summary.splice(index, 1);
+      this.totalSum =
+          this.summary.length === 0
+              ? null
+              : this.summary.reduce((acc, item) => acc + item.result, 0);
+    },
+  },
+}).mount("#app");

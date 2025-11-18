@@ -1,62 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBG Currency Converter</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NBG Currency Converter</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap"
+            rel="stylesheet"
+    />
+    <style>
+        body { font-family: "Space Grotesk", system-ui, sans-serif; }
+    </style>
 </head>
-<body>
-  <header class="app-header">
-    <h1>NBG Currency Converter</h1>
-    <p class="subtitle">Calculate historic exchange rates using the National Bank of Georgia API.</p>
-  </header>
 
-  <main>
-    <section class="converter-card" aria-labelledby="converter-title">
-      <h2 id="converter-title">Conversion details</h2>
-      <form id="converter-form">
-        <div class="form-group">
-          <label for="amount">Amount</label>
-          <input type="number" id="amount" name="amount" min="0" step="0.01" required placeholder="Enter amount" />
-        </div>
+<body class="min-h-screen bg-neutral-200 text-neutral-900">
+<div id="app" class="min-h-screen flex justify-center py-8 px-3">
+    <div class="w-full max-w-5xl bg-white shadow-sm border border-neutral-300 flex flex-col">
 
-        <div class="form-group">
-          <label for="date">Conversion date</label>
-          <input type="date" id="date" name="date" required />
-        </div>
+        <header class="px-6 sm:px-10 pt-8 pb-6 border-b border-neutral-300 space-y-6">
+            <div class="flex flex-wrap items-end gap-6">
+                <div class="space-y-1">
+                    <label for="from-currency" class="text-xs uppercase tracking-[0.12em] text-neutral-600">From</label>
+                    <select
+                            id="from-currency"
+                            v-model="fromCurrency"
+                            class="w-56 border border-neutral-900 bg-white px-3 py-2 text-sm rounded-none
+                               focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                    >
+                        <option
+                                v-for="currency in currencies"
+                                :key="'from-' + currency.code"
+                                :value="currency.code"
+                        >
+                            {{ currency.code }} — {{ currency.name }}
+                        </option>
+                        <option value="GEL">GEL — Georgian Lari</option>
+                    </select>
+                </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="from-currency">From currency</label>
-            <select id="from-currency" name="fromCurrency" required></select>
-          </div>
-          <div class="form-group">
-            <label for="to-currency">To currency</label>
-            <select id="to-currency" name="toCurrency" required></select>
-          </div>
-        </div>
+                <div class="space-y-1">
+                    <label for="to-currency" class="text-xs uppercase tracking-[0.12em] text-neutral-600">To</label>
+                    <select
+                            id="to-currency"
+                            v-model="toCurrency"
+                            class="w-56 border border-neutral-900 bg-white px-3 py-2 text-sm rounded-none
+                               focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                    >
+                        <option
+                                v-for="currency in currencies"
+                                :key="'to-' + currency.code"
+                                :value="currency.code"
+                        >
+                            {{ currency.code }} — {{ currency.name }}
+                        </option>
+                        <option value="GEL">GEL — Georgian Lari</option>
+                    </select>
+                </div>
+            </div>
 
-        <button type="submit" class="convert-button">Convert</button>
-      </form>
-      <p class="helper-text">Default currencies fall back to USD → GEL if no previous choice is saved.</p>
-    </section>
+            <div class="pt-4 text-left border-t border-neutral-300 mt-4">
+                <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">NBG Currency Converter</h1>
+                <p class="mt-2 text-sm sm:text-base text-neutral-600 max-w-xl">
+                    Calculate historic exchange rates using the National Bank of Georgia API.
+                </p>
+            </div>
+        </header>
 
-    <section class="result-card" aria-live="polite">
-      <h2>Result</h2>
-      <div id="result" class="result"></div>
-    </section>
+        <main class="px-6 sm:px-10 py-8 grid gap-8 md:grid-cols-[1.6fr_1fr]">
 
-    <section class="status-card" aria-live="polite">
-      <h2>Status</h2>
-      <div id="status" class="status">Fetching currency list…</div>
-    </section>
-  </main>
+            <section class="space-y-5">
+                <div class="border-b border-neutral-900 pb-2">
+                    <h2 class="text-xl font-semibold uppercase tracking-[0.18em]">Conversion list</h2>
+                </div>
 
-  <footer class="app-footer">
-    <p>Data sourced from the <a href="https://nbg.gov.ge/" target="_blank" rel="noopener noreferrer">National Bank of Georgia</a>.</p>
-  </footer>
+                <div class="space-y-4">
+                    <div
+                            v-for="(row, index) in rows"
+                            :key="index"
+                            class="border border-neutral-300 bg-white px-4 py-4 space-y-3"
+                    >
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-[0.16em] text-neutral-600 mb-1">Amount</label>
+                                <input
+                                        type="number"
+                                        v-model.number="row.amount"
+                                        min="0"
+                                        step="0.01"
+                                        class="w-full border border-neutral-900 bg-white px-3 py-2 text-sm rounded-none
+                                           focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                                />
+                            </div>
 
-  <script src="script.js" type="module"></script>
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-[0.16em] text-neutral-600 mb-1">Date</label>
+                                <input
+                                        type="date"
+                                        v-model="row.date"
+                                        class="w-full border border-neutral-900 bg-white px-3 py-2 text-sm rounded-none
+                                           focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                                />
+                            </div>
+                        </div>
+
+                        <div v-if="row.result !== null" class="text-sm font-semibold tracking-tight">
+                            {{ format(row.result) }} {{ toCurrency }}
+                        </div>
+
+                        <button
+                                @click="removeRow(index)"
+                                class="text-[11px] uppercase tracking-[0.18em] text-neutral-500 hover:text-neutral-900"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-3 pt-1">
+                    <button
+                            @click="addRow"
+                            type="button"
+                            class="px-5 py-2 text-xs uppercase tracking-[0.16em] border border-neutral-900
+                               bg-white hover:bg-neutral-900 hover:text-white transition-colors"
+                    >
+                        + Add row
+                    </button>
+
+                    <button
+                            @click="calculateAll"
+                            type="button"
+                            class="px-5 py-2 text-xs uppercase tracking-[0.16em] bg-red-600 text-white
+                               hover:bg-red-700 transition-colors"
+                    >
+                        Calculate all
+                    </button>
+                </div>
+
+                <p class="text-xs text-neutral-600 pt-2">
+                    Global currencies:
+                    <span class="font-semibold">{{ fromCurrency }} → {{ toCurrency }}</span>.
+                </p>
+            </section>
+
+            <section class="space-y-5">
+                <div class="border-b border-neutral-900 pb-2 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold uppercase tracking-[0.18em]">Summary</h2>
+
+                    <button
+                            v-if="summary.length > 0"
+                            @click="clearSummary"
+                            class="text-[11px] uppercase tracking-[0.18em] text-neutral-500 hover:text-red-600"
+                    >
+                        Clear
+                    </button>
+                </div>
+
+                <div v-if="summary.length > 0" class="space-y-3">
+
+                    <div
+                            v-for="(item, index) in summary"
+                            :key="'sum-' + index"
+                            class="border border-neutral-300 bg-white px-3 py-2 text-xs flex justify-between gap-3"
+                    >
+                        <div class="space-y-0.5">
+                            <div class="font-semibold tracking-tight">
+                                {{ index + 1 }} · {{ item.amount }} {{ fromCurrency }}
+                            </div>
+                            <div class="text-[11px] text-neutral-600">on {{ item.date }}</div>
+                            <div class="text-sm font-semibold">→ {{ format(item.result) }} {{ toCurrency }}</div>
+                        </div>
+
+                        <button
+                                @click="removeSummaryItem(index)"
+                                class="text-[11px] text-neutral-400 hover:text-red-600 self-start"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="border-t border-neutral-900 pt-3 mt-2">
+                        <div class="text-sm uppercase tracking-[0.18em] text-neutral-600">Total</div>
+                        <div class="text-2xl font-bold tracking-tight mt-1">
+                            {{ format(totalSum) }} {{ toCurrency }}
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else class="text-sm text-neutral-600">
+                    Fill rows and press <span class="font-semibold">“Calculate all”</span>.
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-auto border-t border-neutral-300 px-6 sm:px-10 py-4">
+            <div class="text-[11px] text-neutral-500 flex flex-wrap justify-between gap-2">
+                <span>Data sourced from the National Bank of Georgia.</span>
+                <a
+                        href="https://nbg.gov.ge/"
+                        target="_blank"
+                        class="underline underline-offset-2 hover:text-neutral-900"
+                >
+                    Visit website
+                </a>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>

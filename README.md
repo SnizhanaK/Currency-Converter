@@ -1,32 +1,32 @@
 # NBG Currency Converter
 
-A lightweight web calculator for historical currency conversions based on the National Bank of Georgia (NBG) exchange rates. Enter an amount, choose a date, and select currencies to see the equivalent value in Georgian Lari or any other supported currency for that specific day.
+A lightweight browser-based currency converter that uses historical exchange rates from the National Bank of Georgia (NBG).  
+No backend, no build tools — just open the page and use it.
 
 ## Features
+- Loads official daily rates from the NBG public API
+- Supports any currency pair, including conversions through GEL
+- Multiple conversion rows with per-row results
+- Summary panel with total amount
+- Light/Dark theme toggle (saved in localStorage)
+- Rate caching to reduce repeated API calls
+- Responsive UI built with Vue 3 + Tailwind CSS
 
-- Fetches official daily exchange rates directly from the NBG public API.
-- Remembers the last used currency pair via `localStorage` for faster subsequent calculations.
-- Provides a responsive interface with accessibility-friendly semantics.
-- Supports conversion between any two currencies by converting through the Georgian Lari base rate.
-
-## Getting Started
-
+## Usage
 1. Open `index.html` in any modern browser.
-2. Enter the amount, choose the date, and select the source and target currencies.
-3. Press **Convert** to view the converted amount alongside the Georgian Lari equivalent for tax or accounting purposes.
+2. Enter an amount and pick a date.
+3. Choose source and target currencies.
+4. Press **Calculate all** to see results and the total.
 
-> **Tip:** If the selected date falls on a non-business day, the API may serve the most recent available rates. Ensure the displayed status message confirms the expected rate date.
+> Note: If the selected date has no official rate (e.g., weekend or holiday), the API returns the most recent available rates.
 
-## API Reference
+## API
+Rates are fetched from:  https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json/?date=YYYY-MM-DD
 
-Exchange rates are retrieved from the following NBG endpoint:
-
-```
-https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json/?date=YYYY-MM-DD
-```
-
-The application extracts the currency list from the JSON response and uses it to populate the selectors.
+## Tech Stack
+- Vue 3
+- Tailwind CSS
+- NBG Currencies API
 
 ## License
-
-This project is released under the [MIT License](./LICENSE).
+MIT

@@ -5,19 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NBG Currency Converter</title>
 
-    <!-- Сначала подключаем Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Потом задаём конфиг -->
     <script>
         tailwind.config = {
             darkMode: "class",
         };
     </script>
-    <!-- Vue 3 -->
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
-    <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -43,7 +40,6 @@
 
             <div class="flex items-end justify-between gap-6 flex-wrap">
 
-                <!-- SELECTS -->
                 <div class="flex items-end gap-6">
 
                     <div class="space-y-1">
@@ -78,7 +74,6 @@
 
                 </div>
 
-                <!-- THEME BUTTON (правый край) -->
                 <button
                         @click="toggleTheme"
                         class="px-4 py-2 text-xs uppercase border border-neutral-900 dark:border-neutral-300
@@ -100,7 +95,6 @@
         <!-- MAIN -->
         <main class="px-6 sm:px-10 py-8 grid gap-8 md:grid-cols-[1.6fr_1fr]">
 
-            <!-- LEFT -->
             <section class="space-y-5">
                 <div class="border-b border-neutral-900 dark:border-neutral-300 pb-2">
                     <h2 class="text-xl font-semibold uppercase tracking-[0.18em]">Conversion list</h2>
@@ -174,7 +168,6 @@
                 </div>
             </section>
 
-            <!-- RIGHT -->
             <section class="space-y-5">
                 <div class="border-b border-neutral-900 dark:border-neutral-300 pb-2 flex items-center justify-between">
                     <h2 class="text-lg font-semibold uppercase tracking-[0.18em]">Summary</h2>
@@ -197,10 +190,12 @@
                     >
                         <div>
                             <div class="font-semibold">
-                                {{ index + 1 }} · {{ item.amount }} {{ fromCurrency }}
+                                {{ index + 1 }} ·  {{ format(item.amount) }} {{ fromCurrency }}
                             </div>
                             <div class="text-[11px] text-neutral-600 dark:text-neutral-300">on {{ item.date }}</div>
-                            <div class="text-sm font-semibold">→ {{ format(item.result) }} {{ toCurrency }}</div>
+                            <div class="text-sm font-semibold">
+                                → {{ format(item.result) }} {{ toCurrency }}
+                            </div>
                         </div>
 
                         <button

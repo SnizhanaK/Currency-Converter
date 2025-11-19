@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NBG Currency Converter</title>
 
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script>
-        tailwind.config = {
-            darkMode: "class",
-        };
+        tailwind.config = { darkMode: "class" };
     </script>
 
+    <!-- Vue -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -23,14 +23,15 @@
     />
 
     <style>
-        body { font-family: "Space Grotesk", system-ui, sans-serif; }
+        body {
+            font-family: "Space Grotesk", system-ui, sans-serif;
+        }
     </style>
 </head>
 
 <body class="min-h-screen bg-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
 
-<div id="app" :class="{ 'dark': isDark }"
-     class="min-h-screen flex justify-center py-8 px-3">
+<div id="app" :class="{ 'dark': isDark }" class="min-h-screen flex justify-center py-8 px-3">
 
     <div class="w-full max-w-5xl bg-white dark:bg-neutral-800 shadow-sm
                 border border-neutral-300 dark:border-neutral-700 flex flex-col">
@@ -40,17 +41,15 @@
 
             <div class="flex items-end justify-between gap-6 flex-wrap">
 
-                <div class="flex items-end gap-6 flex-wrap">
+                <div class="flex items-end gap-6">
 
                     <div class="space-y-1">
-                        <label class="text-xs uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">
-                            From
-                        </label>
+                        <label class="text-xs uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">From</label>
                         <select
                                 v-model="fromCurrency"
-                                class="w-full sm:w-56 border border-neutral-900 dark:border-neutral-300
-             bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100
-             px-3 py-2 text-sm rounded-none"
+                                class="w-56 border border-neutral-900 dark:border-neutral-300
+                                   bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100
+                                   px-3 py-2 text-sm rounded-none"
                         >
                             <option v-for="c in currencies" :value="c.code">
                                 {{ c.code }} — {{ c.name }}
@@ -60,14 +59,12 @@
                     </div>
 
                     <div class="space-y-1">
-                        <label class="text-xs uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">
-                            To
-                        </label>
+                        <label class="text-xs uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">To</label>
                         <select
                                 v-model="toCurrency"
-                                class="w-full sm:w-56 border border-neutral-900 dark:border-neutral-300
-             bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100
-             px-3 py-2 text-sm rounded-none"
+                                class="w-56 border border-neutral-900 dark:border-neutral-300
+                                   bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100
+                                   px-3 py-2 text-sm rounded-none"
                         >
                             <option v-for="c in currencies" :value="c.code">
                                 {{ c.code }} — {{ c.name }}
@@ -81,35 +78,40 @@
                 <button
                         @click="toggleTheme"
                         class="px-4 py-2 text-xs uppercase border border-neutral-900 dark:border-neutral-300
-               bg-white dark:bg-neutral-700 dark:text-neutral-100 hover:bg-neutral-900 hover:text-white
-               transition-colors"
+                           bg-white dark:bg-neutral-700 dark:text-neutral-100 hover:bg-neutral-900 hover:text-white
+                           transition-colors"
                 >
                     Mode
                 </button>
 
             </div>
+
             <div class="pt-4 text-left border-t border-neutral-300 dark:border-neutral-700 mt-4">
                 <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">NBG Currency Converter</h1>
                 <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300 max-w-xl">
                     Calculate historic exchange rates using the National Bank of Georgia API.
                 </p>
             </div>
+
         </header>
 
         <!-- MAIN -->
         <main class="px-6 sm:px-10 py-8 grid gap-8 md:grid-cols-[1.6fr_1fr]">
 
+            <!-- LEFT PANEL -->
             <section class="space-y-5">
                 <div class="border-b border-neutral-900 dark:border-neutral-300 pb-2">
                     <h2 class="text-xl font-semibold uppercase tracking-[0.18em]">Conversion list</h2>
                 </div>
 
                 <div class="space-y-4">
+
                     <div
                             v-for="(row, index) in rows"
                             class="border border-neutral-300 dark:border-neutral-600
                                bg-white dark:bg-neutral-700 px-4 py-4 space-y-3"
                     >
+
                         <div class="flex flex-col sm:flex-row gap-4">
 
                             <div class="flex-1">
@@ -137,6 +139,7 @@
                                            px-3 py-2 text-sm rounded-none"
                                 />
                             </div>
+
                         </div>
 
                         <div v-if="row.result !== null" class="text-sm font-semibold tracking-tight">
@@ -149,7 +152,9 @@
                         >
                             Remove
                         </button>
+
                     </div>
+
                 </div>
 
                 <div class="flex flex-wrap gap-3 pt-1">
@@ -172,7 +177,9 @@
                 </div>
             </section>
 
+            <!-- RIGHT PANEL -->
             <section class="space-y-5">
+
                 <div class="border-b border-neutral-900 dark:border-neutral-300 pb-2 flex items-center justify-between">
                     <h2 class="text-lg font-semibold uppercase tracking-[0.18em]">Summary</h2>
 
@@ -216,26 +223,31 @@
                             {{ format(totalSum) }} {{ toCurrency }}
                         </div>
                     </div>
+
                 </div>
 
                 <div v-else class="text-sm text-neutral-600 dark:text-neutral-300">
                     Fill rows and press <span class="font-semibold">“Calculate all”</span>.
                 </div>
+
             </section>
+
         </main>
 
         <!-- FOOTER -->
         <footer class="mt-auto border-t border-neutral-300 dark:border-neutral-700 px-6 sm:px-10 py-4">
             <div class="text-[11px] text-neutral-500 dark:text-neutral-300 flex justify-between">
                 <span>Data sourced from the National Bank of Georgia.</span>
-                <a href="https://nbg.gov.ge/" target="_blank" class="underline">
-                    Visit website
-                </a>
+                <a href="https://nbg.gov.ge/" target="_blank" class="underline">Visit website</a>
             </div>
         </footer>
+
     </div>
+
 </div>
 
+<!-- SCRIPT -->
 <script src="script.js"></script>
+
 </body>
 </html>

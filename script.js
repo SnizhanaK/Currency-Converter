@@ -78,12 +78,34 @@ createApp({
             return map;
         },
 
-        convertToGel(amount, currencyCode, ratesMap) {
+        // универсальная конвертация from → to через GEL
+        convert(amount, fromCode, toCode, ratesMap) {
             if (!amount || isNaN(amount)) return null;
-            if (currencyCode === "GEL") return Number(amount);
 
-            const d = ratesMap.get(currencyCode);
-            return Number(amount) * (d.rate / d.qty);
+            const value = Number(amount);
+
+            if (fromCode === toCode) return value;
+
+            const toGel = (val, code) => {
+                if (code === "GEL") return val;
+                const d = ratesMap.get(code);
+                if (!d) return null;
+                const perUnitGel = d.rate / d.qty;
+                return val * perUnitGel;
+            };
+
+            const fromGel = (gelVal, code) => {
+                if (code === "GEL") return gelVal;
+                const d = ratesMap.get(code);
+                if (!d) return null;
+                const perUnitGel = d.rate / d.qty;
+                return gelVal / perUnitGel;
+            };
+
+            const gelAmount = toGel(value, fromCode);
+            if (gelAmount == null) return null;
+
+            return fromGel(gelAmount, toCode);
         },
 
         addRow() {
@@ -106,7 +128,12 @@ createApp({
                 if (!amount || amount <= 0) continue;
 
                 const rates = await this.fetchRates(row.date);
-                const result = this.convertToGel(amount, this.fromCurrency, rates);
+                const result = this.convert(
+                    amount,
+                    this.fromCurrency,
+                    this.toCurrency,
+                    rates
+                );
 
                 if (result == null) continue;
 

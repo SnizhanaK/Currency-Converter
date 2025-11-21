@@ -29,7 +29,6 @@ createApp({
 
         const saved = localStorage.getItem("theme");
         this.isDark = saved === "dark";
-
         document.documentElement.classList.toggle("dark", this.isDark);
     },
 
@@ -38,7 +37,6 @@ createApp({
             if (num === null || num === undefined || num === "") return "";
             const n = Number(num);
             if (Number.isNaN(n)) return "";
-
             return new Intl.NumberFormat("de-DE", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
@@ -78,7 +76,6 @@ createApp({
             return map;
         },
 
-        // универсальная конвертация from → to через GEL
         convert(amount, fromCode, toCode, ratesMap) {
             if (!amount || isNaN(amount)) return null;
 
@@ -114,20 +111,43 @@ createApp({
         },
 
         removeRow(index) {
-            if (this.rows.length > 1) this.rows.splice(index, 1);
+            if (this.rows.length > 1) {
+                this.rows.splice(index, 1);
+            } else {
+                // если осталась одна строка — просто чистим её
+                const today = new Date().toISOString().split("T")[0];
+                this.rows[0].amount = "";
+                this.rows[0].date = today;
+                this.rows[0].result = null;
+            }
+            this.calculateAll();
         },
 
         async calculateAll() {
-            const batch = [];
-            let batchTotal = 0;
+            const summary = [];
+            let total = 0;
 
-            for (const row of this.rows) {
-                if (!row.amount || !row.date) continue;
+            const localRatesCache = {};
+
+            for (let i = 0; i < this.rows.length; i++) {
+                const row = this.rows[i];
+
+                if (!row.amount || !row.date) {
+                    row.result = null;
+                    continue;
+                }
 
                 const amount = Number(row.amount);
-                if (!amount || amount <= 0) continue;
+                if (!amount || amount <= 0) {
+                    row.result = null;
+                    continue;
+                }
 
-                const rates = await this.fetchRates(row.date);
+                if (!localRatesCache[row.date]) {
+                    localRatesCache[row.date] = await this.fetchRates(row.date);
+                }
+                const rates = localRatesCache[row.date];
+
                 const result = this.convert(
                     amount,
                     this.fromCurrency,
@@ -135,34 +155,28 @@ createApp({
                     rates
                 );
 
-                if (result == null) continue;
-
                 row.result = result;
 
-                batch.push({ amount, date: row.date, result });
-                batchTotal += result;
+                if (result != null) {
+                    summary.push({
+                        index: i,
+                        amount,
+                        date: row.date,
+                        result,
+                    });
+                    total += result;
+                }
             }
 
-            if (batch.length === 0) return;
+            this.summary = summary;
+            this.totalSum = summary.length === 0 ? null : total;
+        },
 
-            this.summary.push(...batch);
-            this.totalSum = (this.totalSum ?? 0) + batchTotal;
-
+        clearAll() {
             const today = new Date().toISOString().split("T")[0];
             this.rows = [{ amount: "", date: today, result: null }];
-        },
-
-        clearSummary() {
             this.summary = [];
             this.totalSum = null;
-        },
-
-        removeSummaryItem(index) {
-            this.summary.splice(index, 1);
-            this.totalSum =
-                this.summary.length === 0
-                    ? null
-                    : this.summary.reduce((a, x) => a + x.result, 0);
         },
     },
 }).mount("#app");

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>NBG Currency Converter</title>
 
     <!-- Tailwind -->
@@ -37,58 +37,101 @@
                 border border-neutral-300 dark:border-neutral-700 flex flex-col">
 
         <!-- HEADER -->
-        <header class="px-6 sm:px-10 pt-8 pb-6 border-b border-neutral-300 dark:border-neutral-700 space-y-6">
+        <header class="px-6 md:px-10 pt-8 pb-6 border-b border-neutral-300 dark:border-neutral-700 space-y-6">
 
-            <div class="flex items-end justify-between gap-6 flex-wrap">
+            <div class="flex flex-wrap items-end gap-6 w-full">
 
-                <div class="flex items-end gap-6">
+                <!-- FROM -->
+                <div class="space-y-1 w-full md:w-64 order-2 md:order-1">
+                    <label class="text-xs uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">
+                        From
+                    </label>
 
-                    <div class="space-y-1">
-                        <label class="text-xs uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">From</label>
+                    <div class="relative">
                         <select
                                 v-model="fromCurrency"
-                                class="w-56 border border-neutral-900 dark:border-neutral-300
+                                class="w-full border border-neutral-900 dark:border-neutral-300
                                    bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100
-                                   px-3 py-2 text-sm rounded-none"
+                                   pl-3 pr-10 py-2 text-sm rounded-none
+                                   appearance-none"
                         >
-                            <option v-for="c in currencies" :value="c.code">
+                            <option v-for="c in currencies" :key="c.code" :value="c.code">
                                 {{ c.code }} — {{ c.name }}
                             </option>
                             <option value="GEL">GEL — Georgian Lari</option>
                         </select>
-                    </div>
 
-                    <div class="space-y-1">
-                        <label class="text-xs uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">To</label>
-                        <select
-                                v-model="toCurrency"
-                                class="w-56 border border-neutral-900 dark:border-neutral-300
-                                   bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100
-                                   px-3 py-2 text-sm rounded-none"
-                        >
-                            <option v-for="c in currencies" :value="c.code">
-                                {{ c.code }} — {{ c.name }}
-                            </option>
-                            <option value="GEL">GEL — Georgian Lari</option>
-                        </select>
+                        <!-- Arrow -->
+                        <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-3 w-3"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M6 9l6 6 6-6" />
+                            </svg>
+                        </span>
                     </div>
-
                 </div>
 
-                <button
-                        @click="toggleTheme"
-                        class="px-4 py-2 text-xs uppercase border border-neutral-900 dark:border-neutral-300
-                           bg-white dark:bg-neutral-700 dark:text-neutral-100 hover:bg-neutral-900 hover:text-white
-                           transition-colors"
-                >
-                    Mode
-                </button>
+                <!-- TO -->
+                <div class="space-y-1 w-full md:w-64 order-3 md:order-2">
+                    <label class="text-xs uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">
+                        To
+                    </label>
+
+                    <div class="relative">
+                        <select
+                                v-model="toCurrency"
+                                class="w-full border border-neutral-900 dark:border-neutral-300
+                                   bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100
+                                   pl-3 pr-10 py-2 text-sm rounded-none
+                                   appearance-none"
+                        >
+                            <option v-for="c in currencies" :key="c.code" :value="c.code">
+                                {{ c.code }} — {{ c.name }}
+                            </option>
+                            <option value="GEL">GEL — Georgian Lari</option>
+                        </select>
+
+                        <!-- Arrow -->
+                        <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-3 w-3"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M6 9l6 6 6-6" />
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- MODE -->
+                <div class="order-1 md:order-3 w-full md:w-auto flex justify-end md:ml-auto">
+                    <button
+                            @click="toggleTheme"
+                            class="px-4 py-2 text-xs uppercase border border-neutral-900 dark:border-neutral-300
+                               bg-white dark:bg-neutral-700 dark:text-neutral-100
+                               hover:bg-neutral-900 hover:text-white
+                               dark:hover:bg-neutral-300 dark:hover:text-neutral-900
+                               transition-colors"
+                    >
+                        Light / Dark
+                    </button>
+                </div>
 
             </div>
 
-            <div class="pt-4 text-left border-t border-neutral-300 dark:border-neutral-700 mt-4">
-                <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">NBG Currency Converter</h1>
-                <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300 max-w-xl">
+            <!-- TITLE -->
+            <div class="pt-6 border-t border-neutral-300 dark:border-neutral-700 text-center space-y-3">
+                <h1 class="text-3xl md:text-4xl font-semibold">
+                    NBG Currency Converter
+                </h1>
+
+                <p class="text-neutral-600 dark:text-neutral-300">
                     Calculate historic exchange rates using the National Bank of Georgia API.
                 </p>
             </div>
@@ -100,59 +143,79 @@
 
             <!-- LEFT PANEL -->
             <section class="space-y-5">
-                <div class="border-b border-neutral-900 dark:border-neutral-300 pb-2">
-                    <h2 class="text-xl font-semibold uppercase tracking-[0.18em]">Conversion list</h2>
+
+                <!-- Conversion list header + Clear all -->
+                <div class="border-b border-neutral-900 dark:border-neutral-300 pb-2 flex items-center justify-between">
+                    <h2 class="text-xl font-semibold uppercase tracking-[0.18em]">
+                        Conversion list
+                    </h2>
+
+                    <button
+                            v-if="rows.length > 1 || summary.length > 0"
+                            @click="clearAll"
+                            class="text-[11px] uppercase text-neutral-500 hover:text-red-600 dark:text-neutral-300"
+                    >
+                        Clear all
+                    </button>
                 </div>
 
                 <div class="space-y-4">
 
                     <div
                             v-for="(row, index) in rows"
+                            :key="index"
                             class="border border-neutral-300 dark:border-neutral-600
                                bg-white dark:bg-neutral-700 px-4 py-4 space-y-3"
                     >
-
                         <div class="flex flex-col sm:flex-row gap-4">
 
-                            <div class="flex-1">
-                                <label class="text-[10px] uppercase text-neutral-600 dark:text-neutral-300 mb-1 block">
-                                    Amount
-                                </label>
-                                <input
-                                        type="number"
-                                        v-model.number="row.amount"
-                                        class="w-full border border-neutral-900 dark:border-neutral-300
-                                           bg-white dark:bg-neutral-600 text-neutral-900 dark:text-neutral-100
-                                           px-3 py-2 text-sm rounded-none"
-                                />
+                            <!-- LEFT: Amount + result -->
+                            <div class="flex-1 space-y-2">
+                                <div>
+                                    <label class="text-[10px] uppercase text-neutral-600 dark:text-neutral-300 mb-1 block">
+                                        Amount
+                                    </label>
+                                    <input
+                                            type="number"
+                                            v-model.number="row.amount"
+                                            class="w-full border border-neutral-900 dark:border-neutral-300
+                                               bg-white dark:bg-neutral-600 text-neutral-900 dark:text-neutral-100
+                                               px-3 py-2 text-sm rounded-none"
+                                    />
+                                </div>
+
+                                <!-- result under amount -->
+                                <div v-if="row.result !== null" class="text-sm font-semibold tracking-tight">
+                                    {{ format(row.result) }} {{ toCurrency }}
+                                </div>
                             </div>
 
-                            <div class="flex-1">
-                                <label class="text-[10px] uppercase text-neutral-600 dark:text-neutral-300 mb-1 block">
-                                    Date
-                                </label>
-                                <input
-                                        type="date"
-                                        v-model="row.date"
-                                        class="w-full border border-neutral-900 dark:border-neutral-300
-                                           bg-white dark:bg-neutral-600 text-neutral-900 dark:text-neutral-100
-                                           px-3 py-2 text-sm rounded-none"
-                                />
+                            <!-- RIGHT: Date + Remove -->
+                            <!-- RIGHT: Date + Remove -->
+                            <div class="flex-1 flex flex-col space-y-2 items-end">
+                                <div class="w-full">
+                                    <label class="text-[10px] uppercase text-neutral-600 dark:text-neutral-300 mb-1 block">
+                                        Date
+                                    </label>
+                                    <input
+                                            type="date"
+                                            v-model="row.date"
+                                            class="w-full border border-neutral-900 dark:border-neutral-300
+                   bg-white dark:bg-neutral-600 text-neutral-900 dark:text-neutral-100
+                   px-3 py-2 text-sm rounded-none"
+                                    />
+                                </div>
+
+                                <button
+                                        @click="removeRow(index)"
+                                        class="text-[11px] uppercase text-neutral-500 hover:text-neutral-900
+               dark:text-neutral-300 dark:hover:text-white"
+                                >
+                                    Remove
+                                </button>
                             </div>
 
                         </div>
-
-                        <div v-if="row.result !== null" class="text-sm font-semibold tracking-tight">
-                            {{ format(row.result) }} {{ toCurrency }}
-                        </div>
-
-                        <button
-                                @click="removeRow(index)"
-                                class="text-[11px] uppercase text-neutral-500 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
-                        >
-                            Remove
-                        </button>
-
                     </div>
 
                 </div>
@@ -180,41 +243,27 @@
             <!-- RIGHT PANEL -->
             <section class="space-y-5">
 
-                <div class="border-b border-neutral-900 dark:border-neutral-300 pb-2 flex items-center justify-between">
+                <div class="border-b border-neutral-900 dark:border-neutral-300 pb-2">
                     <h2 class="text-lg font-semibold uppercase tracking-[0.18em]">Summary</h2>
-
-                    <button
-                            v-if="summary.length > 0"
-                            @click="clearSummary"
-                            class="text-[11px] uppercase text-neutral-500 hover:text-red-600 dark:text-neutral-300"
-                    >
-                        Clear
-                    </button>
                 </div>
 
                 <div v-if="summary.length > 0" class="space-y-3">
 
                     <div
                             v-for="(item, index) in summary"
+                            :key="index"
                             class="border border-neutral-300 dark:border-neutral-600
-                               bg-white dark:bg-neutral-700 px-3 py-2 text-xs flex justify-between gap-3"
+                               bg-white dark:bg-neutral-700 px-3 py-2 text-xs"
                     >
-                        <div>
-                            <div class="font-semibold">
-                                {{ index + 1 }} ·  {{ format(item.amount) }} {{ fromCurrency }}
-                            </div>
-                            <div class="text-[11px] text-neutral-600 dark:text-neutral-300">on {{ item.date }}</div>
-                            <div class="text-sm font-semibold">
-                                → {{ format(item.result) }} {{ toCurrency }}
-                            </div>
+                        <div class="font-semibold">
+                            {{ index + 1 }} · {{ format(item.amount) }} {{ fromCurrency }}
                         </div>
-
-                        <button
-                                @click="removeSummaryItem(index)"
-                                class="text-[11px] text-neutral-400 hover:text-red-600 dark:hover:text-red-400"
-                        >
-                            ✕
-                        </button>
+                        <div class="text-[11px] text-neutral-600 dark:text-neutral-300">
+                            on {{ item.date }}
+                        </div>
+                        <div class="text-sm font-semibold">
+                            → {{ format(item.result) }} {{ toCurrency }}
+                        </div>
                     </div>
 
                     <div class="border-t border-neutral-900 dark:border-neutral-300 pt-3 mt-2">
@@ -236,9 +285,11 @@
 
         <!-- FOOTER -->
         <footer class="mt-auto border-t border-neutral-300 dark:border-neutral-700 px-6 sm:px-10 py-4">
-            <div class="text-[11px] text-neutral-500 dark:text-neutral-300 flex justify-between">
-                <span>Data sourced from the National Bank of Georgia.</span>
-                <a href="https://nbg.gov.ge/" target="_blank" class="underline">Visit website</a>
+            <div class="text-[11px] text-neutral-500 dark:text-neutral-300">
+                Data sourced from the
+                <a href="https://nbg.gov.ge/" target="_blank" class="underline">
+                    National Bank of Georgia
+                </a>.
             </div>
         </footer>
 
